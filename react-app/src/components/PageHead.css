@@ -1,0 +1,11 @@
+.pg-head {
+    position: absolute;
+    top: 0;
+    color: white;
+    margin: 20px 60px 0;
+}
+
+span {
+    background-color: white;
+    color: black;
+}
