@@ -1,71 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
-import './Timer.css'
+import './Timer.css';
 
-const Timer = ({ initialMinutes = 0, initialSeconds = 0 }) => {
+function Timer(props) {
   const navigate = useNavigate();
 
-  const getInitialTime = () => {
-    const savedTime = localStorage.getItem('savedTime');
+  const getSavedTime = () => {
+    const savedTime = localStorage.getItem('time');
     if (savedTime) {
       return JSON.parse(savedTime);
+    } else {
+      return {
+        hours: Math.floor(props.initialMinutes / 60),
+        minutes: props.initialMinutes % 60,
+        seconds: props.initialSeconds,
+      };
     }
-    return {
-      hours: Math.floor(initialMinutes / 60),
-      minutes: initialMinutes % 60,
-      seconds: initialSeconds,
-    };
   };
 
-  const [time, setTime] = useState(getInitialTime);
+  const [time, setTime] = useState(getSavedTime);
   const [showCard, setShowCard] = useState(false);
   const [confettiVisible, setConfettiVisible] = useState(false);
 
   useEffect(() => {
-    const timerInterval = setInterval(() => {
+    const interval = setInterval(() => {
       setTime((prevTime) => {
-        const { hours, minutes, seconds } = prevTime;
+        let newTime = { ...prevTime };
 
-        if (hours === 0 && minutes === 0 && seconds === 0) {
-          clearInterval(timerInterval);
+        if (newTime.hours === 0 && newTime.minutes === 0 && newTime.seconds === 0) {
+          clearInterval(interval);
           setTimeout(() => {
             setConfettiVisible(true);
             setShowCard(true);
-            setTimeout(() => navigate('/new-page'), 3000);
+            setTimeout(() => {
+              navigate('/new-page');
+            }, 3000);
           }, 1000);
-          return prevTime;
+          return newTime;
         }
 
-        const newTime = { ...prevTime };
-        if (seconds > 0) {
-          newTime.seconds = seconds - 1;
-        } else if (minutes > 0) {
-          newTime.minutes = minutes - 1;
-          newTime.seconds = 59;
-        } else if (hours > 0) {
-          newTime.hours = hours - 1;
-          newTime.minutes = 59;
-          newTime.seconds = 59;
+        if (newTime.seconds > 0) {
+          newTime.seconds -= 1;
+        } else {
+          if (newTime.minutes > 0) {
+            newTime.minutes -= 1;
+            newTime.seconds = 59;
+          } else {
+            if (newTime.hours > 0) {
+              newTime.hours -= 1;
+              newTime.minutes = 59;
+              newTime.seconds = 59;
+            }
+          }
         }
 
-        localStorage.setItem('savedTime', JSON.stringify(newTime));
+        localStorage.setItem('time', JSON.stringify(newTime));
         return newTime;
       });
     }, 1000);
 
-    return () => clearInterval(timerInterval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [navigate]);
 
   useEffect(() => {
     if (showCard) {
-      localStorage.setItem('timerEnded', true);
-      localStorage.removeItem('savedTime');
+      localStorage.setItem('timerFinished', 'true');
+      localStorage.removeItem('time');
     }
   }, [showCard]);
 
   useEffect(() => {
-    if (localStorage.getItem('timerEnded')) {
+    if (localStorage.getItem('timerFinished') === 'true') {
       navigate('/new-page');
     }
   }, [navigate]);
@@ -79,7 +87,7 @@ const Timer = ({ initialMinutes = 0, initialSeconds = 0 }) => {
           <b>{String(time.seconds).padStart(2, '0')}</b>
         </div>
       ) : (
-        <div className='cardDiv'>
+        <div className="cardDiv">
           <div className="card-container">
             {confettiVisible && <Confetti />}
             <div className="card">
@@ -92,6 +100,6 @@ const Timer = ({ initialMinutes = 0, initialSeconds = 0 }) => {
       )}
     </div>
   );
-};
+}
 
 export default Timer;
