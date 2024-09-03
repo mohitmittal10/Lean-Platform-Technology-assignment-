@@ -14,7 +14,7 @@ function App() {
       <BlobAnimation />
       <PageHead />
       <Rocket />
-      <Timer initialMinutes={10} initialSeconds={3} />
+      <Timer initialMinutes={0} initialSeconds={3} />
     </div>
   );
 }
